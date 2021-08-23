@@ -4,11 +4,12 @@ from rr2atom import __version__
 def test_version():
     assert __version__ == '0.1.0'
 
+# TODO
 def test_whatever():
     content = b'''
 Hi Example,
 
-SenescentSoul has just posted a new chapter of Story titled 100: Example Title.
+Author has just posted a new chapter of Story titled 100: Example Title.
 
 You can read it at https://email-click.royalroad.com/x0xxxx/X0xXXxxX
 
