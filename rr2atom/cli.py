@@ -108,6 +108,22 @@ def touch(config_file: Path = Path("rr2atom.toml")):
 
 
 @app.command()
+def update(config_file: Path = Path("rr2atom.toml")):
+    touch(config_file)
+    config = Rr2AtomConfig.load(config_file)
+
+    feed_dir = Path(config.feeds_directory)
+    feed_dir.mkdir(parents=True, exist_ok=True)
+
+    with db.connect(config.db) as conn, IMAPClient(host=config.host) as client:
+        client.login(config.username, config.password)
+        client.select_folder(config.folder)
+
+        fetch_new_chapters(conn, client)
+        write_feeds(conn, feed_dir)
+
+
+@app.command()
 def serve(config_file: Path = Path("rr2atom.toml")):
     touch(config_file)
     config = Rr2AtomConfig.load(config_file)

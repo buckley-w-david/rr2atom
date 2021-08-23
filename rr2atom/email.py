@@ -11,9 +11,9 @@ URL_PATTERN = re.compile(r"(?P<url>https?://[^\s]+)")
 
 
 def fetch_unprocessed(imap_client):
-    # messages = imap_client.search("ALL")
-    messages = imap_client.search(["UNSEEN", "SUBJECT", "New Chapter of"])
-    # messages = imap_client.search(["UNSEEN", 'SUBJECT', 'New Chapter of', 'FROM', 'noreply@royalroad.com'])
+    messages = imap_client.search(
+        ["UNSEEN", "SUBJECT", "New Chapter of", "FROM", "noreply@royalroad.com"]
+    )
     for uid, data in imap_client.fetch(messages, ["ENVELOPE", "RFC822"]).items():
         envelope = data[b"ENVELOPE"]
         # *sigh*
