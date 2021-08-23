@@ -88,25 +88,3 @@ def get_stories(conn):
 def get_story_chapters(conn, story_id: int):
     s = select(chapters).where(chapters.c.story_id == story_id)
     return conn.execute(s).fetchall()
-
-
-# def get_scan_sources(conn):
-#     query = text(
-#         '''
-#         SELECT sources.source_id, sources.data_type, sources.data FROM sources
-#           LEFT OUTER JOIN events ON sources.source_id = events.source_id
-#         WHERE NOT sources.once OR events.source_id IS NULL
-#         '''
-#     )
-#
-#     for result in conn.execute(query):
-#         yield result
-#
-# def get_events(conn):
-#     for result in conn.execute(select([events.c.url, events.c.title, events.c.description, events.c.event_date])):
-#         yield Event(
-#             url=result.url,
-#             title=result.title,
-#             description=result.description,
-#             date=result.event_date
-#         )
