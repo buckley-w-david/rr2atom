@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from imapclient.response_types import Envelope  # type: ignore
+
 from pydantic import BaseModel, HttpUrl
 
 
@@ -15,3 +17,8 @@ class Chapter(BaseModel):
     title: str
     description: str
     published: datetime
+
+
+class UpdateEmail(BaseModel):
+    envelope: Envelope
+    plaintext_content: str

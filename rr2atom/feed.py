@@ -1,7 +1,7 @@
 from datetime import timezone
 from typing import List
 
-from feedgen.feed import FeedGenerator
+from feedgen.feed import FeedGenerator  # type: ignore
 
 from rr2atom.models import Story, Chapter
 

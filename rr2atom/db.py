@@ -76,7 +76,8 @@ def add_chapter(conn, story_id: int, chapter: Chapter) -> int:
 
 def story_id_from_title(conn, title: str) -> Optional[Tuple[int]]:
     s = select(stories.c.story_id).where(stories.c.title == title)
-    return conn.execute(s).fetchone()
+    result = conn.execute(s).fetchone()
+    return result[0] if result else None
 
 
 def get_stories(conn):
