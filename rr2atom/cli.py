@@ -101,24 +101,20 @@ def write_feeds(db_conn, feed_dir: Path, feed_base_url: str):
         ]
         feed = generate_feed(story, chapters)
         feed.atom_file(f"{feed_dir / story.title}.xml")
-        outlines.append(opml.models.Outline(
-            attributes = {
-                'type': 'rss',
-                'text': story.title,
-                'xmlUrl': urljoin(feed_base_url, f"{story.title}.xml")
-            }
-        ))
+        outlines.append(
+            opml.models.Outline(
+                attributes={
+                    "type": "rss",
+                    "text": story.title,
+                    "xmlUrl": urljoin(feed_base_url, f"{story.title}.xml"),
+                }
+            )
+        )
 
     updated_opml = opml.models.Opml(
-        version=opml_version,
-        head=opml_head,
-        body=opml.models.Body(
-            outlines=outlines
-        )
+        version=opml_version, head=opml_head, body=opml.models.Body(outlines=outlines)
     )
-    opml.writer.write(str(feed_dir / 'subscriptions.xml'), updated_opml)
-
-
+    opml.writer.write(str(feed_dir / "subscriptions.xml"), updated_opml)
 
 
 app = typer.Typer()
