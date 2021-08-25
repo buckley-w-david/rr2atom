@@ -1,7 +1,7 @@
 from datetime import datetime
 import enum
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 import toml
 from datetime import datetime
 import pathlib
@@ -25,3 +25,4 @@ class Rr2AtomConfig(TomlModel):
     folder: str = ""
     db: str = "sqlite:///rr2atom.sqlite"
     feeds_directory: str = "feeds"
+    feed_base_url: HttpUrl = "https://example.com/"

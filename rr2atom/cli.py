@@ -3,10 +3,14 @@ import logging
 import re
 from typing import Optional, List, Protocol
 from pathlib import Path
+from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup  # type: ignore
 from imapclient import IMAPClient  # type: ignore
 import typer
+
+import opml.writer
+import opml.models
 
 from rr2atom import db
 from rr2atom import email
@@ -83,8 +87,11 @@ def fetch_new_chapters(db_conn, imap_client):
         db.add_chapter(db_conn, story_id, chapter)
 
 
-def write_feeds(db_conn, feed_dir):
+def write_feeds(db_conn, feed_dir: Path, feed_base_url: str):
     # Regenerate Feeds
+    opml_version = opml.models.Version.VERSION2
+    opml_head = opml.models.Head()
+    outlines = []
     for story_row in db.get_stories(db_conn):
         story_id = story_row.story_id
         story = Story(**story_row._mapping)
@@ -94,6 +101,24 @@ def write_feeds(db_conn, feed_dir):
         ]
         feed = generate_feed(story, chapters)
         feed.atom_file(f"{feed_dir / story.title}.xml")
+        outlines.append(opml.models.Outline(
+            attributes = {
+                'type': 'rss',
+                'text': story.title,
+                'xmlUrl': urljoin(feed_base_url, f"{story.title}.xml")
+            }
+        ))
+
+    updated_opml = opml.models.Opml(
+        version=opml_version,
+        head=opml_head,
+        body=opml.models.Body(
+            outlines=outlines
+        )
+    )
+    opml.writer.write(str(feed_dir / 'subscriptions.xml'), updated_opml)
+
+
 
 
 app = typer.Typer()
@@ -120,7 +145,7 @@ def update(config_file: Path = Path("rr2atom.toml")):
         client.select_folder(config.folder)
 
         fetch_new_chapters(conn, client)
-        write_feeds(conn, feed_dir)
+        write_feeds(conn, feed_dir, config.feed_base_url)
 
 
 @app.command()
@@ -136,7 +161,7 @@ def serve(config_file: Path = Path("rr2atom.toml")):
         client.select_folder(config.folder)
 
         fetch_new_chapters(conn, client)
-        write_feeds(conn, feed_dir)
+        write_feeds(conn, feed_dir, config.feed_base_url)
 
         # Switch to idle mode and handle events as they come in
         while True:
@@ -156,7 +181,7 @@ def serve(config_file: Path = Path("rr2atom.toml")):
                         fetch_new_chapters(conn, client)
                         client.idle()
 
-                        write_feeds(conn, feed_dir)
+                        write_feeds(conn, feed_dir, config.feed_base_url)
             finally:
                 client.idle_done()
 
