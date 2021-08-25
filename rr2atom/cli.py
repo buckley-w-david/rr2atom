@@ -3,7 +3,7 @@ import logging
 import re
 from typing import Optional, List, Protocol
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import urljoin, quote
 
 from bs4 import BeautifulSoup  # type: ignore
 from imapclient import IMAPClient  # type: ignore
@@ -106,7 +106,7 @@ def write_feeds(db_conn, feed_dir: Path, feed_base_url: str):
                 attributes={
                     "type": "rss",
                     "text": story.title,
-                    "xmlUrl": urljoin(feed_base_url, f"{story.title}.xml"),
+                    "xmlUrl": urljoin(feed_base_url, f"{quote(story.title)}.xml"),
                 }
             )
         )
