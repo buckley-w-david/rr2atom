@@ -17,8 +17,8 @@ feedgen = "^0.9.0"
 IMAPClient = "^2.2.0"
 SQLAlchemy = "^1.4.23"
 beautifulsoup4 = "^4.9.3"
-opml = { git = "https://github.com/buckley-w-david/opml.git" }
 email-validator = "^1.1.3"
+opml = { git = "https://github.com/buckley-w-david/opml.git" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
