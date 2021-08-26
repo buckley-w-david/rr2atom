@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from imaplib import IMAP4
 import logging
 import re
 from typing import Optional, List, Protocol
@@ -163,7 +164,7 @@ def serve(config_file: Path = Path("rr2atom.toml")):
         while True:
             # > clients using IDLE are advised to terminate the IDLE and re-issue it at least every 29 minutes to avoid being logged off
             # https://datatracker.ietf.org/doc/html/rfc2177.html
-            reset = datetime.now() + timedelta(minutes=29)
+            reset = datetime.now() + timedelta(minutes=10)
             try:
                 client.idle()
                 while datetime.now() < reset:
@@ -178,6 +179,8 @@ def serve(config_file: Path = Path("rr2atom.toml")):
                         client.idle()
 
                         write_feeds(conn, feed_dir, config.feed_base_url)
+            except IMAP4.error:
+                pass
             finally:
                 client.idle_done()
 
