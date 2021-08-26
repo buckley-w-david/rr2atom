@@ -45,13 +45,17 @@ def create_story(envelope, body) -> Story:
     else:
         description = "Story Title"
 
+    if match := URL_PATTERN.search(body):
+        chapter_url = match.group("url")
+        story_url = chapter_url[: chapter_url.index("/chapter")]
+    else:
+        story_url = "https://royalroad.com/"
+
     return Story(
-        title=envelope.subject.decode(
-            "utf-8"
-        ),  # Should this be the title, or the subject?
+        title=envelope.subject.decode("utf-8"),
         author_name=author,
-        url="https://royalroad.com/",  # Would like a better url, but we don't have it
-        description=description,  # Would like a better feed description
+        url=story_url,
+        description=description,
     )
 
 
@@ -104,11 +108,11 @@ def write_feeds(db_conn, feed_dir: Path, feed_base_url: str):
         feed.atom_file(f"{feed_dir / story.title}.xml")
         outlines.append(
             opml.models.Outline(
+                text=story.title,
                 attributes={
                     "type": "rss",
-                    "text": story.title,
                     "xmlUrl": urljoin(feed_base_url, f"{quote(story.title)}.xml"),
-                }
+                },
             )
         )
 
