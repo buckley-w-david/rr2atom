@@ -26,9 +26,15 @@ def fetch_unprocessed(imap_client):
         # I really like the simplicity of the text/plain version
         # so we're hackin' the correct link in.
         email_message = email.message_from_bytes(data[b"RFC822"])
-        soup = BeautifulSoup(email_message.get_payload(1).get_payload(), "html.parser")
 
-        body = email_message.get_payload(0).get_payload()
+        # Quoted-printable bit me in the ass, gotta decode the payload
+        # We're just assuming that it's UTF-8 encoded, this will likely bite me in the ass
+        # at some future point too
+        html_payload = (
+            email_message.get_payload(1).get_payload(decode=True).decode("utf-8")
+        )
+        soup = BeautifulSoup(html_payload, "html.parser")
+
         email_url = soup.find("a", {"data-color": "Button Link"}).get("href")
 
         # While I'm at it, lets resolve the email tracking redirect
@@ -38,5 +44,6 @@ def fetch_unprocessed(imap_client):
         with urllib.request.urlopen(req) as f:
             chapter_url = f.url
 
+        body = email_message.get_payload(0).get_payload(decode=True).decode("utf-8")
         body = URL_PATTERN.sub(chapter_url, body, count=1).replace("\r", "")
         yield UpdateEmail(envelope=envelope, plaintext_content=body)
