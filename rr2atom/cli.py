@@ -183,10 +183,13 @@ def serve(config_file: Path = Path("rr2atom.toml")):
                         client.idle()
 
                         write_feeds(conn, feed_dir, config.feed_base_url)
-            except IMAP4.error:
+            except:
                 pass
             finally:
-                client.idle_done()
+                try:
+                    client.idle_done()
+                except:
+                    pass
 
 
 if __name__ == "__main__":
