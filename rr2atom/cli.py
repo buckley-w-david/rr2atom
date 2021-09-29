@@ -10,8 +10,8 @@ from bs4 import BeautifulSoup  # type: ignore
 from imapclient import IMAPClient  # type: ignore
 import typer
 
-import opml.writer
-import opml.models
+import opml.writer  # type: ignore
+import opml.models  # type: ignore
 
 from rr2atom import db
 from rr2atom import email
@@ -78,7 +78,8 @@ def create_chapter(envelope, body) -> Chapter:
     )
 
 
-def fetch_new_chapters(db_conn, imap_client):
+def fetch_new_chapters(db_conn, imap_client) -> List[int]:
+    updated = []
     for chapter_email in email.fetch_unprocessed(imap_client):
         envelope = chapter_email.envelope
         body = chapter_email.plaintext_content
@@ -87,19 +88,25 @@ def fetch_new_chapters(db_conn, imap_client):
         if story_id is None:
             story = create_story(envelope, body)
             story_id = db.add_story(db_conn, story)
+        updated.append(story_id)
 
         chapter = create_chapter(envelope, body)
         db.add_chapter(db_conn, story_id, chapter)
+    return updated
 
 
-def write_feeds(db_conn, feed_dir: Path, feed_base_url: str):
+def write_feeds(
+    db_conn, feed_dir: Path, feed_base_url: str, updated_stories: List[int]
+):
     # Regenerate Feeds
     opml_version = opml.models.Version.VERSION2
     opml_head = opml.models.Head()
     outlines = []
-    for story_row in db.get_stories(db_conn):
-        story_id = story_row.story_id
-        story = Story(**story_row._mapping)
+    for story_id in updated_stories:
+        story = db.get_story(db_conn, story_id)
+        if not story:
+            continue
+
         chapters = [
             Chapter(**chapter_row._mapping)
             for chapter_row in db.get_story_chapters(db_conn, story_id)
@@ -145,8 +152,8 @@ def update(config_file: Path = Path("rr2atom.toml")):
         client.login(config.username, config.password)
         client.select_folder(config.folder)
 
-        fetch_new_chapters(conn, client)
-        write_feeds(conn, feed_dir, config.feed_base_url)
+        updated = fetch_new_chapters(conn, client)
+        write_feeds(conn, feed_dir, config.feed_base_url, updated)
 
 
 @app.command()
@@ -161,8 +168,8 @@ def serve(config_file: Path = Path("rr2atom.toml")):
         client.login(config.username, config.password)
         client.select_folder(config.folder)
 
-        fetch_new_chapters(conn, client)
-        write_feeds(conn, feed_dir, config.feed_base_url)
+        updated = fetch_new_chapters(conn, client)
+        write_feeds(conn, feed_dir, config.feed_base_url, updated)
 
         # Switch to idle mode and handle events as they come in
         while True:
@@ -179,10 +186,10 @@ def serve(config_file: Path = Path("rr2atom.toml")):
                         # FIXME: while the new messages are fetched, new incoming ones aren't discovered!
                         # This isn't too big a deal since they would be picked up at the next update
                         client.idle_done()
-                        fetch_new_chapters(conn, client)
+                        updated = fetch_new_chapters(conn, client)
                         client.idle()
 
-                        write_feeds(conn, feed_dir, config.feed_base_url)
+                        write_feeds(conn, feed_dir, config.feed_base_url, updated)
             except:
                 pass
             finally:

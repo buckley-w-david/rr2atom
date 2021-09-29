@@ -15,3 +15,4 @@ build/
 *.sqlite
 rr2atom.toml
 feeds/*.xml
+.envrc

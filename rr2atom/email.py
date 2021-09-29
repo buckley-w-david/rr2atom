@@ -17,6 +17,7 @@ USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:92.0) Gecko/20100101 Firefox/92
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def fetch_unprocessed(imap_client):
     messages = imap_client.search(
         ["UNSEEN", "SUBJECT", "New Chapter of", "FROM", "noreply@royalroad.com"]

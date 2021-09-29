@@ -74,10 +74,16 @@ def add_chapter(conn, story_id: int, chapter: Chapter) -> int:
     return result.inserted_primary_key[0]
 
 
-def story_id_from_title(conn, title: str) -> Optional[Tuple[int]]:
+def story_id_from_title(conn, title: str) -> Optional[int]:
     s = select(stories.c.story_id).where(stories.c.title == title)
     result = conn.execute(s).fetchone()
     return result[0] if result else None
+
+
+def get_story(conn, id: int) -> Optional[Story]:
+    s = select(stories).where(stories.c.story_id == id)
+    story_row = conn.execute(s).fetchone()
+    return Story(**story_row._mapping) if story_row else None
 
 
 def get_stories(conn):
