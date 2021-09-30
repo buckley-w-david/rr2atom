@@ -98,10 +98,11 @@ def fetch_new_chapters(db_conn, imap_client) -> List[int]:
 def write_feeds(
     db_conn, feed_dir: Path, feed_base_url: str, updated_stories: List[int]
 ):
-    # Regenerate Feeds
     opml_version = opml.models.Version.VERSION2
     opml_head = opml.models.Head()
     outlines = []
+
+    # Only regeneate updated feeds
     for story_id in updated_stories:
         story = db.get_story(db_conn, story_id)
         if not story:
@@ -113,6 +114,10 @@ def write_feeds(
         ]
         feed = generate_feed(story, chapters)
         feed.atom_file(f"{feed_dir / story.title}.xml")
+
+    # But regenerate the entire OPML because this update might contain an entirely new story
+    for story_row in db.get_stories(db_conn):
+        story = Story(**story_row._mapping)
         outlines.append(
             opml.models.Outline(
                 text=story.title,
